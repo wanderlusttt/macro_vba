@@ -5,6 +5,10 @@ Sub RemoveZeroNetRows()
     Dim dict As Object
     Set dict = CreateObject("Scripting.Dictionary")
     
+    ' Disable screen updating and automatic calculation
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    
     ' Change "Sheet1" to the name of your worksheet
     Set ws = ThisWorkbook.Worksheets("Sheet1")
     
@@ -25,6 +29,10 @@ Sub RemoveZeroNetRows()
             End If
         End If
     Next i
+    
+    ' Enable screen updating and automatic calculation
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
     
     ' Clean up
     Set ws = Nothing
