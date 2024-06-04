@@ -4,6 +4,7 @@ Sub FilterTransactionsWithNonZeroSum()
     Dim transactionCol As Long
     Dim netCol As Long
     Dim sumCol As Long
+    Dim rng As Range
     
     ' Set the worksheet
     Set ws = ThisWorkbook.Sheets("Sheet1") ' Replace "Sheet1" with the actual name of your worksheet
@@ -28,10 +29,17 @@ Sub FilterTransactionsWithNonZeroSum()
     Next i
     
     ' Apply filter to exclude rows with zero sum
-    ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, sumCol)).AutoFilter Field:=sumCol, Criteria1:="<>0"
+    ws.Columns(sumCol).AutoFilter Field:=1, Criteria1:="<>0"
     
-    ' Select the visible rows for testing
-    ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, ws.Columns.Count)).SpecialCells(xlCellTypeVisible).Select
+    ' Check if there are visible cells in the filtered range
+    On Error Resume Next
+    Set rng = ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, ws.Columns.Count)).SpecialCells(xlCellTypeVisible)
+    On Error GoTo 0
+    
+    ' If there are visible cells, select them
+    If Not rng Is Nothing Then
+        rng.Select
+    End If
     
     ' Remove the filter
     ws.AutoFilterMode = False
