@@ -1,51 +1,32 @@
-Sub FilterTransactionsWithNonZeroSum()
+Sub RemoveZeroNetRows()
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim transactionCol As Long
-    Dim netCol As Long
-    Dim sumCol As Long
-    Dim rng As Range
-    
-    ' Set the worksheet
-    Set ws = ThisWorkbook.Sheets("Sheet1") ' Replace "Sheet1" with the actual name of your worksheet
-    
-    ' Set the column numbers for Transaction Number, Net, and Sum
-    transactionCol = 1 ' Assuming Transaction Number is in column A
-    netCol = 2 ' Assuming Net Amount is in column B
-    
-    ' Find the last row with data
-    lastRow = ws.Cells(ws.Rows.Count, transactionCol).End(xlUp).Row
-    
-    ' Insert a new column for sum calculation
-    sumCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column + 1
-    ws.Cells(1, sumCol).Value = "Sum"
-    
-    ' Calculate sum for each transaction number
     Dim i As Long
-    For i = 2 To lastRow
-        If ws.Cells(i, transactionCol).Value <> ws.Cells(i - 1, transactionCol).Value Then
-            ws.Cells(i, sumCol).Formula = "=SUMIF(" & ws.Cells(2, transactionCol).Address & ":" & ws.Cells(lastRow, transactionCol).Address & "," & ws.Cells(i, transactionCol).Address & "," & ws.Cells(2, netCol).Address & ":" & ws.Cells(lastRow, netCol).Address & ")"
+    Dim dict As Object
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    ' Change "Sheet1" to the name of your worksheet
+    Set ws = ThisWorkbook.Worksheets("Sheet1")
+    
+    ' Find the last row in the sheet
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' Loop through each row in reverse order to avoid issues with deleting rows
+    For i = lastRow To 2 Step -1
+        ' Check if the "Net" column sums to zero for this transaction number
+        If ws.Cells(i, "P").Value = 0 Then
+            ' If the "Net" column sums to zero, check if we have already seen this transaction number
+            If Not dict.exists(ws.Cells(i, "K").Value) Then
+                ' If it's the first time seeing this transaction number, mark it as seen
+                dict(ws.Cells(i, "K").Value) = True
+            Else
+                ' If it's not the first time seeing this transaction number, delete the row
+                ws.Rows(i).Delete
+            End If
         End If
     Next i
     
-    ' Apply filter to exclude rows with zero sum
-    ws.Columns(sumCol).AutoFilter Field:=1, Criteria1:="<>0"
-    
-    ' Check if there are visible cells in the filtered range
-    On Error Resume Next
-    Set rng = ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, ws.Columns.Count)).SpecialCells(xlCellTypeVisible)
-    On Error GoTo 0
-    
-    ' If there are visible cells, select them
-    If Not rng Is Nothing Then
-        rng.Select
-    End If
-    
-    ' Remove the filter
-    ws.AutoFilterMode = False
-    
-    ' Clear the sum column
-    ws.Columns(sumCol).ClearContents
-    
-    MsgBox "Transactions with non-zero sum have been selected for testing.", vbInformation
+    ' Clean up
+    Set ws = Nothing
+    Set dict = Nothing
 End Sub
