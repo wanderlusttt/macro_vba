@@ -1,0 +1,43 @@
+Sub FilterTransactionsWithNonZeroSum()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim transactionCol As Long
+    Dim netCol As Long
+    Dim sumCol As Long
+    
+    ' Set the worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Replace "Sheet1" with the actual name of your worksheet
+    
+    ' Set the column numbers for Transaction Number, Net, and Sum
+    transactionCol = 1 ' Assuming Transaction Number is in column A
+    netCol = 2 ' Assuming Net Amount is in column B
+    
+    ' Find the last row with data
+    lastRow = ws.Cells(ws.Rows.Count, transactionCol).End(xlUp).Row
+    
+    ' Insert a new column for sum calculation
+    sumCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column + 1
+    ws.Cells(1, sumCol).Value = "Sum"
+    
+    ' Calculate sum for each transaction number
+    Dim i As Long
+    For i = 2 To lastRow
+        If ws.Cells(i, transactionCol).Value <> ws.Cells(i - 1, transactionCol).Value Then
+            ws.Cells(i, sumCol).Formula = "=SUMIF(" & ws.Cells(2, transactionCol).Address & ":" & ws.Cells(lastRow, transactionCol).Address & "," & ws.Cells(i, transactionCol).Address & "," & ws.Cells(2, netCol).Address & ":" & ws.Cells(lastRow, netCol).Address & ")"
+        End If
+    Next i
+    
+    ' Apply filter to exclude rows with zero sum
+    ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, sumCol)).AutoFilter Field:=sumCol, Criteria1:="<>0"
+    
+    ' Select the visible rows for testing
+    ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, ws.Columns.Count)).SpecialCells(xlCellTypeVisible).Select
+    
+    ' Remove the filter
+    ws.AutoFilterMode = False
+    
+    ' Clear the sum column
+    ws.Columns(sumCol).ClearContents
+    
+    MsgBox "Transactions with non-zero sum have been selected for testing.", vbInformation
+End Sub
